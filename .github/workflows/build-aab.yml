@@ -1,0 +1,41 @@
+name: Build CalcNova AAB
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Extract CalcNova project
+        run: |
+          mkdir build-src
+          unzip -q "CalcNovaAndroid-ReadyProject.zip" -d build-src
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build Android App Bundle
+        working-directory: build-src
+        run: gradle :app:bundleRelease
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalcNova-AAB
+          path: build-src/app/build/outputs/bundle/release/app-release.aab
