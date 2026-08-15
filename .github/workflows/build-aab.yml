@@ -1,16 +1,17 @@
 name: Build CalcNova AAB
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -18,24 +19,42 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
       - name: Extract CalcNova project
         run: |
-          mkdir build-src
-          unzip -q "CalcNovaAndroid-ReadyProject.zip" -d build-src
+          mkdir -p CalcNovaAndroid
+          unzip -o CalcNovaAndroid-ReadyProject.zip -d CalcNovaAndroid
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
+
+      - name: Fix Java/Kotlin JVM targets
+        working-directory: CalcNovaAndroid
+        run: |
+          echo "Fixing JVM target compatibility..."
+
+          find . -name "build.gradle" -type f -print
+
+          find . -name "build.gradle" -type f -exec sed -i \
+            's/sourceCompatibility[[:space:]]*=.*JavaVersion.VERSION_1_8/sourceCompatibility = JavaVersion.VERSION_17/g' {} \;
+
+          find . -name "build.gradle" -type f -exec sed -i \
+            's/targetCompatibility[[:space:]]*=.*JavaVersion.VERSION_1_8/targetCompatibility = JavaVersion.VERSION_17/g' {} \;
+
+          find . -name "build.gradle" -type f -exec sed -i \
+            's/jvmTarget[[:space:]]*=[[:space:]]*["'\'']1\.8["'\'']/jvmTarget = "17"/g' {} \;
+
+          echo "JVM target fix completed."
 
       - name: Build Android App Bundle
-        working-directory: build-src
-        run: gradle :app:bundleRelease
+        working-directory: CalcNovaAndroid
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:bundleRelease
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: CalcNova-AAB
-          path: build-src/app/build/outputs/bundle/release/app-release.aab
+          path: CalcNovaAndroid/app/build/outputs/bundle/release/*.aab
