@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CalcNova</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+:root{
+  --accent:#2563eb;
+  --bg:#f3f6fb;
+  --card:#ffffff;
+  --text:#111827;
+  --muted:#6b7280;
+  --key:#edf1f7;
+  --key2:#e2e8f0;
+  --display:#111827;
+  --displayText:#ffffff;
+  --danger:#ef4444;
+}
+
+html[data-theme="dark"]{
+  --bg:#0b1120;
+  --card:#111827;
+  --text:#f8fafc;
+  --muted:#9ca3af;
+  --key:#1f2937;
+  --key2:#374151;
+  --display:#020617;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  display:flex;
+  justify-content:center;
+  padding:12px;
+  transition:.25s;
+}
+
+.app{
+  width:100%;
+  max-width:440px;
+}
+
+/* HEADER */
+
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:5px 2px 12px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:var(--accent);
+  color:#fff;
+  display:grid;
+  place-items:center;
+  font-size:22px;
+  font-weight:bold;
+  box-shadow:0 5px 15px rgba(0,0,0,.15);
+}
+
+.title{
+  font-size:21px;
+  font-weight:800;
+}
+
+.subtitle{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+/* 3 DOT */
+
+.menu-wrap{
+  position:relative;
+}
+
+.menu-btn{
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:13px;
+  background:var(--card);
+  color:var(--text);
+  font-size:25px;
+  cursor:pointer;
+  box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+
+.menu{
+  display:none;
+  position:absolute;
+  right:0;
+  top:49px;
+  width:205px;
+  background:var(--card);
+  border-radius:16px;
+  padding:8px;
+  box-shadow:0 12px 35px rgba(0,0,0,.2);
+  z-index:50;
+}
+
+.menu.show{
+  display:block;
+}
+
+.menu-item{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  padding:12px;
+  border-radius:10px;
+  text-align:left;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.menu-item:hover{
+  background:var(--key);
+}
+
+/* MODE */
+
+.mode{
+  background:var(--card);
+  padding:5px;
+  border-radius:15px;
+  display:flex;
+  gap:5px;
+  margin-bottom:10px;
+  box-shadow:0 4px 15px rgba(0,0,0,.06);
+}
+
+.mode button{
+  flex:1;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:10px;
+  border-radius:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.mode button.active{
+  background:var(--accent);
+  color:white;
+}
+
+/* DISPLAY */
+
+.display{
+  background:var(--display);
+  color:var(--displayText);
+  border-radius:21px;
+  min-height:120px;
+  padding:16px;
+  margin-bottom:10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  overflow:hidden;
+}
+
+.expression{
+  color:#94a3b8;
+  font-size:14px;
+  min-height:20px;
+  text-align:right;
+  white-space:nowrap;
+  overflow:hidden;
+}
+
+.result{
+  text-align:right;
+  font-size:35px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+}
+
+/* SCIENTIFIC */
+
+.scientific{
+  display:none;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+  margin-bottom:6px;
+}
+
+.scientific.show{
+  display:grid;
+}
+
+/* KEYS */
+
+.basic{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+}
+
+.key{
+  border:0;
+  min-height:53px;
+  border-radius:14px;
+  background:var(--key);
+  color:var(--text);
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+  transition:transform .08s,filter .08s;
+}
+
+.key:active{
+  transform:scale(.94);
+  filter:brightness(.92);
+}
+
+.fn{
+  background:var(--key2);
+  font-size:13px;
+}
+
+.op{
+  background:var(--accent);
+  color:white;
+}
+
+.equal{
+  background:var(--accent);
+  color:white;
+}
+
+.danger{
+  color:white;
+  background:var(--danger);
+}
+
+.zero{
+  grid-column:span 2;
+}
+
+/* SETTINGS */
+
+.settings{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:100;
+  align-items:flex-end;
+  justify-content:center;
+}
+
+.settings.show{
+  display:flex;
+}
+
+.sheet{
+  width:100%;
+  max-width:440px;
+  background:var(--card);
+  color:var(--text);
+  border-radius:24px 24px 0 0;
+  padding:20px;
+  animation:up .2s ease;
+}
+
+@keyframes up{
+  from{transform:translateY(100%)}
+  to{transform:translateY(0)}
+}
+
+.sheet-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.sheet-title{
+  font-size:20px;
+  font-weight:800;
+}
+
+.close{
+  border:0;
+  background:var(--key);
+  color:var(--text);
+  width:35px;
+  height:35px;
+  border-radius:10px;
+  font-size:20px;
+}
+
+.setting-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:13px 0;
+  border-bottom:1px solid rgba(128,128,128,.15);
+}
+
+.setting-label{
+  font-weight:700;
+}
+
+.setting-desc{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+/* THEME BUTTON */
+
+.theme-toggle{
+  border:0;
+  background:var(--key);
+  color:var(--text);
+  padding:9px 13px;
+  border-radius:10px;
+  font-weight:bold;
+}
+
+/* COLORS */
+
+.colors{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.color{
+  width:31px;
+  height:31px;
+  border-radius:50%;
+  border:3px solid var(--card);
+  outline:2px solid transparent;
+  cursor:pointer;
+}
+
+.color.active{
+  outline-color:var(--text);
+}
+
+.blue{background:#2563eb}
+.purple{background:#7c3aed}
+.green{background:#16a34a}
+.orange{background:#ea580c}
+.pink{background:#db2777}
+.red{background:#dc2626}
+.cyan{background:#0891b2}
+.black{background:#111827}
+
+.footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:10px;
+  padding:12px;
+}
+
+@media(max-width:360px){
+
+  body{
+    padding:8px;
+  }
+
+  .key{
+    min-height:45px;
+    border-radius:11px;
+    font-size:16px;
+  }
+
+  .scientific{
+    gap:4px;
+  }
+
+  .scientific .key{
+    font-size:11px;
+  }
+
+  .display{
+    min-height:105px;
+  }
+
+  .result{
+    font-size:29px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+
+    <div class="brand">
+
+      <div class="logo">∑</div>
+
+      <div>
+        <div class="title">CalcNova</div>
+        <div class="subtitle">Smart Basic & Scientific Calculator</div>
+      </div>
+
+    </div>
+
+    <div class="menu-wrap">
+
+      <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+
+      <div class="menu" id="menu">
+
+        <button class="menu-item" onclick="openSettings()">
+          ⚙️ Settings
+        </button>
+
+        <button class="menu-item" onclick="openAbout()">
+          ℹ️ About CalcNova
+        </button>
+
+        <button class="menu-item" onclick="showPrivacy()">
+          🔒 Privacy Policy
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MODE -->
+  <div class="mode">
+
+    <button id="basicMode"
+            class="active"
+            onclick="setMode('basic')">
+      🔢 Basic
+    </button>
+
+    <button id="scientificMode"
+            onclick="setMode('scientific')">
+      🧪 Scientific
+    </button>
+
+  </div>
+
+
+  <!-- DISPLAY -->
+  <div class="display">
+
+    <div class="expression" id="expression"></div>
+
+    <div class="result" id="result">0</div>
+
+  </div>
+
+
+  <!-- SCIENTIFIC -->
+  <div class="scientific" id="scientificPad">
+
+    <button class="key fn"
+            id="angleBtn"
+            onclick="toggleAngle()">DEG</button>
+
+    <button class="key fn"
+            onclick="append('sin(')">sin</button>
+
+    <button class="key fn"
+            onclick="append('cos(')">cos</button>
+
+    <button class="key fn"
+            onclick="append('tan(')">tan</button>
+
+    <button class="key fn"
+            onclick="append('log(')">log</button>
+
+
+    <button class="key fn"
+            onclick="append('asin(')">sin⁻¹</button>
+
+    <button class="key fn"
+            onclick="append('acos(')">cos⁻¹</button>
+
+    <button class="key fn"
+            onclick="append('atan(')">tan⁻¹</button>
+
+    <button class="key fn"
+            onclick="append('ln(')">ln</button>
+
+    <button class="key fn"
+            onclick="append('sqrt(')">√</button>
+
+
+    <button class="key fn"
+            onclick="append('π')">π</button>
+
+    <button class="key fn"
+            onclick="append('e')">e</button>
+
+    <button class="key fn"
+            onclick="square()">x²</button>
+
+    <button class="key fn"
+            onclick="append('^')">xʸ</button>
+
+    <button class="key fn"
+            onclick="factorial()">x!</button>
+
+
+    <button class="key fn"
+            onclick="append('(')">(</button>
+
+    <button class="key fn"
+            onclick="append(')')">)</button>
+
+    <button class="key fn"
+            onclick="append('%')">%</button>
+
+    <button class="key fn"
+            onclick="append('Ans')">Ans</button>
+
+    <button class="key fn"
+            onclick="clearAll()">AC</button>
+
+  </div>
+
+
+  <!-- BASIC -->
+  <div class="basic">
+
+    <button class="key danger"
+            onclick="clearAll()">AC</button>
+
+    <button class="key fn"
+            onclick="backspace()">⌫</button>
+
+    <button class="key fn"
+            onclick="append('%')">%</button>
+
+    <button class="key op"
+            onclick="append('÷')">÷</button>
+
+
+    <button class="key"
+            onclick="append('7')">7</button>
+
+    <button class="key"
+            onclick="append('8')">8</button>
+
+    <button class="key"
+            onclick="append('9')">9</button>
+
+    <button class="key op"
+            onclick="append('×')">×</button>
+
+
+    <button class="key"
+            onclick="append('4')">4</button>
+
+    <button class="key"
+            onclick="append('5')">5</button>
+
+    <button class="key"
+            onclick="append('6')">6</button>
+
+    <button class="key op"
+            onclick="append('-')">−</button>
+
+
+    <button class="key"
+            onclick="append('1')">1</button>
+
+    <button class="key"
+            onclick="append('2')">2</button>
+
+    <button class="key"
+            onclick="append('3')">3</button>
+
+    <button class="key op"
+            onclick="append('+')">+</button>
+
+
+    <button class="key zero"
+            onclick="append('0')">0</button>
+
+    <button class="key"
+            onclick="append('.')">.</button>
+
+    <button class="key equal"
+            onclick="calculate()">=</button>
+
+  </div>
+
+  <div class="footer">
+    CalcNova • Smart Calculator
+  </div>
+
+</div>
+
+
+<!-- SETTINGS SHEET -->
+
+<div class="settings" id="settings">
+
+  <div class="sheet">
+
+    <div class="sheet-head">
+
+      <div class="sheet-title">
+        ⚙️ CalcNova Settings
+      </div>
+
+      <button class="close"
+              onclick="closeSettings()">×</button>
+
+    </div>
+
+
+    <div class="setting-row">
+
+      <div>
+        <div class="setting-label">Theme</div>
+        <div class="setting-desc">
+          Change light / dark appearance
+        </div>
+      </div>
+
+      <button class="theme-toggle"
+              onclick="toggleTheme()"
+              id="themeButton">
+        🌙 Dark
+      </button>
+
+    </div>
+
+
+    <div class="setting-row"
+         style="display:block">
+
+      <div class="setting-label">
+        🎨 Accent Colour
+      </div>
+
+      <div class="setting-desc">
+        Choose your favourite CalcNova colour
+      </div>
+
+      <div class="colors">
+
+        <button class="color blue"
+                onclick="setColor('#2563eb',this)"></button>
+
+        <button class="color purple"
+                onclick="setColor('#7c3aed',this)"></button>
+
+        <button class="color green"
+                onclick="setColor('#16a34a',this)"></button>
+
+        <button class="color orange"
+                onclick="setColor('#ea580c',this)"></button>
+
+        <button class="color pink"
+                onclick="setColor('#db2777',this)"></button>
+
+        <button class="color red"
+                onclick="setColor('#dc2626',this)"></button>
+
+        <button class="color cyan"
+                onclick="setColor('#0891b2',this)"></button>
+
+        <button class="color black"
+                onclick="setColor('#111827',this)"></button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+let expression = "";
+let answer = 0;
+let angleMode = "DEG";
+
+const resultBox =
+  document.getElementById("result");
+
+const expressionBox =
+  document.getElementById("expression");
+
+const scientificPad =
+  document.getElementById("scientificPad");
+
+
+/* =========================
+   DISPLAY
+========================= */
+
+function updateDisplay(){
+
+  expressionBox.textContent =
+    expression || "";
+
+  resultBox.textContent =
+    expression || "0";
+}
+
+
+/* =========================
+   INPUT
+========================= */
+
+function append(value){
+
+  expression += value;
+
+  updateDisplay();
+}
+
+
+function clearAll(){
+
+  expression = "";
+
+  resultBox.textContent = "0";
+
+  expressionBox.textContent = "";
+}
+
+
+function backspace(){
+
+  expression =
+    expression.slice(0,-1);
+
+  updateDisplay();
+}
+
+
+/* =========================
+   MODE
+========================= */
+
+function setMode(mode){
+
+  const basic =
+    document.getElementById("basicMode");
+
+  const scientific =
+    document.getElementById("scientificMode");
+
+  if(mode === "scientific"){
+
+    scientificPad.classList.add("show");
+
+    scientific.classList.add("active");
+
+    basic.classList.remove("active");
+
+  }else{
+
+    scientificPad.classList.remove("show");
+
+    basic.classList.add("active");
+
+    scientific.classList.remove("active");
+
+  }
+}
+
+
+/* =========================
+   ANGLE
+========================= */
+
+function toggleAngle(){
+
+  angleMode =
+    angleMode === "DEG"
+    ? "RAD"
+    : "DEG";
+
+  document.getElementById(
+    "angleBtn"
+  ).textContent = angleMode;
+}
+
+
+/* =========================
+   SCIENTIFIC
+========================= */
+
+function square(){
+
+  if(expression){
+
+    expression =
+      "(" + expression + ")^2";
+
+    updateDisplay();
+
+  }
+}
+
+
+function factorial(){
+
+  try{
+
+    const value =
+      evaluateExpression(expression);
+
+    if(value < 0 ||
+       !Number.isInteger(value) ||
+       value > 170){
+
+      throw new Error();
+
+    }
+
+    let result = 1;
+
+    for(let i=2;i<=value;i++){
+
+      result *= i;
+
+    }
+
+    expression =
+      String(result);
+
+    updateDisplay();
+
+  }catch{
+
+    resultBox.textContent =
+      "Error";
+
+  }
+}
+
+
+/* =========================
+   CALCULATE
+========================= */
+
+function calculate(){
+
+  if(!expression) return;
+
+  try{
+
+    const result =
+      evaluateExpression(expression);
+
+    if(!Number.isFinite(result))
+      throw new Error();
+
+    answer = result;
+
+    expressionBox.textContent =
+      expression;
+
+    resultBox.textContent =
+      formatResult(result);
+
+    expression =
+      String(result);
+
+  }catch{
+
+    resultBox.textContent =
+      "Error";
+
+  }
+}
+
+
+function formatResult(num){
+
+  if(Math.abs(num) < 1e-12)
+    num = 0;
+
+  if(Number.isInteger(num))
+    return String(num);
+
+  return Number(
+    num.toFixed(12)
+  ).toString();
+}
+
+
+/* =========================
+   MATH ENGINE
+========================= */
+
+function evaluateExpression(exp){
+
+  let e = exp;
+
+  e = e.replace(
+    /Ans/g,
+    "(" + answer + ")"
+  );
+
+  e = e.replace(
+    /π/g,
+    "Math.PI"
+  );
+
+  e = e.replace(
+    /\be\b/g,
+    "Math.E"
+  );
+
+  e = e.replace(
+    /÷/g,
+    "/"
+  );
+
+  e = e.replace(
+    /×/g,
+    "*"
+  );
+
+  e = e.replace(
+    /%/g,
+    "/100"
+  );
+
+  e = e.replace(
+    /\^/g,
+    "**"
+  );
+
+  e = e.replace(
+    /sqrt\(/g,
+    "Math.sqrt("
+  );
+
+  e = e.replace(
+    /log\(/g,
+    "Math.log10("
+  );
+
+  e = e.replace(
+    /ln\(/g,
+    "Math.log("
+  );
+
+  e = e.replace(
+    /sin\(/g,
+    "SIN("
+  );
+
+  e = e.replace(
+    /cos\(/g,
+    "COS("
+  );
+
+  e = e.replace(
+    /tan\(/g,
+    "TAN("
+  );
+
+  e = e.replace(
+    /asin\(/g,
+    "ASIN("
+  );
+
+  e = e.replace(
+    /acos\(/g,
+    "ACOS("
+  );
+
+  e = e.replace(
+    /atan\(/g,
+    "ATAN("
+  );
+
+  e = e.replace(
+    /SIN\(/g,
+    "sinFunc("
+  );
+
+  e = e.replace(
+    /COS\(/g,
+    "cosFunc("
+  );
+
+  e = e.replace(
+    /TAN\(/g,
+    "tanFunc("
+  );
+
+  e = e.replace(
+    /ASIN\(/g,
+    "asinFunc("
+  );
+
+  e = e.replace(
+    /ACOS\(/g,
+    "acosFunc("
+  );
+
+  e = e.replace(
+    /ATAN\(/g,
+    "atanFunc("
+  );
+
+  return Function(
+    "sinFunc",
+    "cosFunc",
+    "tanFunc",
+    "asinFunc",
+    "acosFunc",
+    "atanFunc",
+    '"use strict";return (' +
+    e +
+    ')'
+  )(
+    sinFunc,
+    cosFunc,
+    tanFunc,
+    asinFunc,
+    acosFunc,
+    atanFunc
+  );
+}
+
+
+/* =========================
+   TRIG
+========================= */
+
+function toRadians(x){
+  return x * Math.PI / 180;
+}
+
+function toDegrees(x){
+  return x * 180 / Math.PI;
+}
+
+function sinFunc(x){
+
+  return Math.sin(
+    angleMode === "DEG"
+    ? toRadians(x)
+    : x
+  );
+
+}
+
+function cosFunc(x){
+
+  return Math.cos(
+    angleMode === "DEG"
+    ? toRadians(x)
+    : x
+  );
+
+}
+
+function tanFunc(x){
+
+  return Math.tan(
+    angleMode === "DEG"
+    ? toRadians(x)
+    : x
+  );
+
+}
+
+function asinFunc(x){
+
+  const r = Math.asin(x);
+
+  return angleMode === "DEG"
+    ? toDegrees(r)
+    : r;
+
+}
+
+function acosFunc(x){
+
+  const r = Math.acos(x);
+
+  return angleMode === "DEG"
+    ? toDegrees(r)
+    : r;
+
+}
+
+function atanFunc(x){
+
+  const r = Math.atan(x);
+
+  return angleMode === "DEG"
+    ? toDegrees(r)
+    : r;
+
+}
+
+
+/* =========================
+   3 DOT MENU
+========================= */
+
+function toggleMenu(){
+
+  document
+    .getElementById("menu")
+    .classList.toggle("show");
+
+}
+
+
+document.addEventListener(
+  "click",
+  function(e){
+
+    const wrap =
+      document.querySelector(".menu-wrap");
+
+    if(!wrap.contains(e.target)){
+
+      document
+        .getElementById("menu")
+        .classList.remove("show");
+
+    }
+
+  }
+);
+
+
+/* =========================
+   SETTINGS
+========================= */
+
+function openSettings(){
+
+  document
+    .getElementById("menu")
+    .classList.remove("show");
+
+  document
+    .getElementById("settings")
+    .classList.add("show");
+
+}
+
+
+function closeSettings(){
+
+  document
+    .getElementById("settings")
+    .classList.remove("show");
+
+}
+
+
+/* =========================
+   THEME
+========================= */
+
+function toggleTheme(){
+
+  const html =
+    document.documentElement;
+
+  const current =
+    html.getAttribute("data-theme");
+
+  const next =
+    current === "dark"
+    ? "light"
+    : "dark";
+
+  html.setAttribute(
+    "data-theme",
+    next
+  );
+
+  localStorage.setItem(
+    "calcNovaTheme",
+    next
+  );
+
+  updateThemeButton();
+
+}
+
+
+function updateThemeButton(){
+
+  const theme =
+    document.documentElement
+      .getAttribute("data-theme");
+
+  document.getElementById(
+    "themeButton"
+  ).textContent =
+    theme === "dark"
+    ? "☀️ Light"
+    : "🌙 Dark";
+
+}
+
+
+/* =========================
+   COLOUR
+========================= */
+
+function setColor(color,button){
+
+  document.documentElement
+    .style.setProperty(
+      "--accent",
+      color
+    );
+
+  localStorage.setItem(
+    "calcNovaColor",
+    color
+  );
+
+  document
+    .querySelectorAll(".color")
+    .forEach(x =>
+      x.classList.remove("active")
+    );
+
+  if(button)
+    button.classList.add("active");
+
+}
+
+
+/* =========================
+   ABOUT / PRIVACY
+========================= */
+
+function openAbout(){
+
+  document
+    .getElementById("menu")
+    .classList.remove("show");
+
+  alert(
+`CalcNova
+
+A simple and powerful calculator with Basic and Scientific modes.
+
+Features:
+• Basic calculations
+• Scientific functions
+• DEG / RAD
+• Dark / Light theme
+• Accent colour customization
+• Calculation history through Ans
+
+Version 1.0`
+  );
+
+}
+
+
+function showPrivacy(){
+
+  document
+    .getElementById("menu")
+    .classList.remove("show");
+
+  alert(
+`CalcNova Privacy Policy
+
+CalcNova is designed to perform calculator functions directly on your device.
+
+The calculator does not require your personal information to perform calculations.
+
+Theme and colour preferences may be stored locally on your device so they remain after reopening the app.
+
+Your calculations are processed locally by the calculator.
+
+CalcNova does not intentionally collect or sell personal information.`
+  );
+
+}
+
+
+/* =========================
+   RESTORE SETTINGS
+========================= */
+
+(function(){
+
+  const theme =
+    localStorage.getItem(
+      "calcNovaTheme"
+    );
+
+  const color =
+    localStorage.getItem(
+      "calcNovaColor"
+    );
+
+  if(theme){
+
+    document.documentElement
+      .setAttribute(
+        "data-theme",
+        theme
+      );
+
+  }
+
+  if(color){
+
+    document.documentElement
+      .style.setProperty(
+        "--accent",
+        color
+      );
+
+  }
+
+  updateThemeButton();
+
+})();
+
+
+/* =========================
+   KEYBOARD
+========================= */
+
+document.addEventListener(
+  "keydown",
+  function(e){
+
+    const k = e.key;
+
+    if(/[0-9.]/.test(k)){
+
+      append(k);
+
+    }
+    else if(k === "+"){
+
+      append("+");
+
+    }
+    else if(k === "-"){
+
+      append("-");
+
+    }
+    else if(k === "*"){
+
+      append("×");
+
+    }
+    else if(k === "/"){
+
+      append("÷");
+
+    }
+    else if(k === "%"){
+
+      append("%");
+
+    }
+    else if(k === "Enter"){
+
+      calculate();
+
+    }
+    else if(k === "Backspace"){
+
+      backspace();
+
+    }
+    else if(k === "Escape"){
+
+      clearAll();
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
