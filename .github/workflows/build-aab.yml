@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -23,38 +22,57 @@ jobs:
 
       - name: Extract CalcNova project
         run: |
-          mkdir -p CalcNovaAndroid
+          rm -rf CalcNovaAndroid
+          mkdir CalcNovaAndroid
           unzip -o CalcNovaAndroid-ReadyProject.zip -d CalcNovaAndroid
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
-      - name: Fix Java/Kotlin JVM targets
+      - name: Fix Java and Kotlin targets
         working-directory: CalcNovaAndroid
         run: |
-          echo "Fixing JVM target compatibility..."
+          python3 - <<'PY'
+          from pathlib import Path
 
-          find . -name "build.gradle" -type f -print
+          p = Path("app/build.gradle.kts")
+          s = p.read_text()
 
-          find . -name "build.gradle" -type f -exec sed -i \
-            's/sourceCompatibility[[:space:]]*=.*JavaVersion.VERSION_1_8/sourceCompatibility = JavaVersion.VERSION_17/g' {} \;
+          marker = 'android {\n'
+          insert = '''android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          '''
 
-          find . -name "build.gradle" -type f -exec sed -i \
-            's/targetCompatibility[[:space:]]*=.*JavaVersion.VERSION_1_8/targetCompatibility = JavaVersion.VERSION_17/g' {} \;
+          if 'sourceCompatibility = JavaVersion.VERSION_17' not in s:
+              s = s.replace(marker, insert, 1)
 
-          find . -name "build.gradle" -type f -exec sed -i \
-            's/jvmTarget[[:space:]]*=[[:space:]]*["'\'']1\.8["'\'']/jvmTarget = "17"/g' {} \;
+          if 'kotlinOptions' not in s:
+              s += '''
 
-          echo "JVM target fix completed."
+          kotlin {
+              jvmToolchain(17)
+          }
+          '''
+
+          p.write_text(s)
+          PY
+
+          echo "Final app/build.gradle.kts:"
+          cat app/build.gradle.kts
 
       - name: Build Android App Bundle
         working-directory: CalcNovaAndroid
         run: |
-          chmod +x gradlew
-          ./gradlew :app:bundleRelease
+          gradle :app:bundleRelease --no-daemon
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: CalcNova-AAB
           path: CalcNovaAndroid/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
